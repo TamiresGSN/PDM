@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,8 +12,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.weatherapp.ui.CityDialog
 import com.weatherapp.ui.nav.BottomNavItem
 import com.weatherapp.ui.nav.BottomNavBar
 import com.weatherapp.ui.nav.MainNavHost
@@ -24,18 +27,34 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // Passo 4 da Parte 2: Inicialização do NavController
-            val navController = rememberNavController()
+            // Parte 2 - Passo 6: Instanciação do ViewModel (State Hoisting)
+            val viewModel: MainViewModel by viewModels()
 
-            // Passo 4 da Parte 2: Definição da lista de itens da navegação
+            // Configurações de Navegação
+            val navController = rememberNavController()
             val items = listOf(
                 BottomNavItem.HomeButton,
                 BottomNavItem.ListButton,
-                BottomNavItem.MapButton,
+                BottomNavItem.MapButton
             )
 
+            // Parte 3 - Passo 2: Estado para controlar a exibição do Diálogo [cite: 165]
+            var showDialog by remember { mutableStateOf(false) }
+
             WeatherAppTheme {
-                // Passo 4 da Parte 2: Configuração do Scaffold (Estrutura da Tela)
+                // Parte 3 - Passo 3: Lógica para exibir o Diálogo de adição [cite: 166-174]
+                if (showDialog) {
+                    CityDialog(
+                        onDismiss = { showDialog = false },
+                        onConfirm = { city ->
+                            if (city.isNotBlank()) {
+                                viewModel.add(city) // Adiciona via ViewModel [cite: 172, 175]
+                            }
+                            showDialog = false
+                        }
+                    )
+                }
+
                 Scaffold(
                     topBar = {
                         TopAppBar(
@@ -44,26 +63,25 @@ class MainActivity : ComponentActivity() {
                                 IconButton(onClick = { finish() }) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                                        contentDescription = "Sair do App"
+                                        contentDescription = "Sair"
                                     )
                                 }
                             }
                         )
                     },
                     bottomBar = {
-                        // Passo 4 da Parte 2: Inclusão da barra inferior personalizada
                         BottomNavBar(navController = navController, items = items)
                     },
                     floatingActionButton = {
-                        // Passo 4 da Parte 2: Adição do Botão Flutuante
-                        FloatingActionButton(onClick = { /* Ação futuramente */ }) {
+                        // Parte 3 - Passo 4: Botão "+" ativa o diálogo [cite: 176-178]
+                        FloatingActionButton(onClick = { showDialog = true }) {
                             Icon(Icons.Default.Add, contentDescription = "Adicionar")
                         }
                     }
                 ) { innerPadding ->
-                    // Passo 4 da Parte 2: Conteúdo principal onde as telas são exibidas
                     Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                        MainNavHost(navController = navController)
+                        // Parte 2 - Passo 5: Repasse do ViewModel para o NavHost [cite: 125]
+                        MainNavHost(navController = navController, viewModel = viewModel)
                     }
                 }
             }

@@ -12,9 +12,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.weatherapp.MainViewModel
 
+// Parte 2 - Passo 3: Atualização da HomePage para aceitar o ViewModel
 @Composable
-fun HomePage(modifier: Modifier = Modifier) {
+fun HomePage(
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel // Parâmetro adicionado conforme o roteiro
+) {
     Column(
         modifier = modifier
             .fillMaxSize()

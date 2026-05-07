@@ -12,13 +12,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.weatherapp.MainViewModel
 
+// Parte 2 - Passo 3: Atualização da MapPage para aceitar o ViewModel
 @Composable
-fun MapPage(modifier: Modifier = Modifier) {
+fun MapPage(
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Blue)
+            .background(Color.Gray)
             .wrapContentSize(Alignment.Center)
     ) {
         Text(
