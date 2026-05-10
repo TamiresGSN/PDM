@@ -41,7 +41,6 @@ fun ListPage(
                     Toast.makeText(activity, "Cidade: ${city.name}", Toast.LENGTH_SHORT).show()
                 },
                 onClose = {
-                    // Chama a função de remover do ViewModel
                     viewModel.remove(city)
                 }
             )

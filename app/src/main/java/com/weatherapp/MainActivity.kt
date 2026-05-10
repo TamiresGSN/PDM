@@ -2,8 +2,10 @@ package com.weatherapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult // IMPORT NOVO
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts // IMPORT NOVO
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,22 +16,24 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.weatherapp.ui.CityDialog
-import com.weatherapp.ui.nav.BottomNavItem
 import com.weatherapp.ui.nav.BottomNavBar
+import com.weatherapp.ui.nav.BottomNavItem
 import com.weatherapp.ui.nav.MainNavHost
+import com.weatherapp.ui.nav.Route
 import com.weatherapp.ui.theme.WeatherAppTheme
 
 class MainActivity : ComponentActivity() {
+    private val viewModel: MainViewModel by viewModels()
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // Parte 2 - Passo 6: Instanciação do ViewModel (State Hoisting)
-            val viewModel: MainViewModel by viewModels()
-
             // Configurações de Navegação
             val navController = rememberNavController()
             val items = listOf(
@@ -38,17 +42,25 @@ class MainActivity : ComponentActivity() {
                 BottomNavItem.MapButton
             )
 
-            // Parte 3 - Passo 2: Estado para controlar a exibição do Diálogo [cite: 165]
+            // Variáveis da Parte 2 - Passo 3
+            val currentRoute = navController.currentBackStackEntryAsState()
+            val showButton = currentRoute.value?.destination?.hasRoute(Route.List::class) == true
+
+            val launcher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission(),
+                onResult = { /* Por enquanto, não precisamos fazer nada no resultado */ }
+            )
+
+            // Estado para controlar a exibição do Diálogo
             var showDialog by remember { mutableStateOf(false) }
 
             WeatherAppTheme {
-                // Parte 3 - Passo 3: Lógica para exibir o Diálogo de adição [cite: 166-174]
                 if (showDialog) {
                     CityDialog(
                         onDismiss = { showDialog = false },
                         onConfirm = { city ->
                             if (city.isNotBlank()) {
-                                viewModel.add(city) // Adiciona via ViewModel [cite: 172, 175]
+                                viewModel.add(city)
                             }
                             showDialog = false
                         }
@@ -73,14 +85,18 @@ class MainActivity : ComponentActivity() {
                         BottomNavBar(navController = navController, items = items)
                     },
                     floatingActionButton = {
-                        // Parte 3 - Passo 4: Botão "+" ativa o diálogo [cite: 176-178]
-                        FloatingActionButton(onClick = { showDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = "Adicionar")
+                        if (showButton) {
+                            FloatingActionButton(onClick = { showDialog = true }) {
+                                Icon(Icons.Default.Add, contentDescription = "Adicionar")
+                            }
                         }
                     }
                 ) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                        // Parte 2 - Passo 5: Repasse do ViewModel para o NavHost [cite: 125]
+                        LaunchedEffect(Unit) {
+                            launcher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+
                         MainNavHost(navController = navController, viewModel = viewModel)
                     }
                 }
