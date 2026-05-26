@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.auth
+import com.google.firebase.ktx.Firebase
 import com.weatherapp.ui.*
 import com.weatherapp.ui.theme.WeatherAppTheme
 
@@ -63,15 +65,20 @@ fun RegisterPage(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.size(16.dp))
 
-        // Organização dos botões Registrar e Limpar
         Row(
             modifier = Modifier.fillMaxWidth(0.91f),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(
                 onClick = {
-                    Toast.makeText(activity, "Registro realizado com sucesso!", Toast.LENGTH_SHORT).show()
-                    activity.finish()
+                    com.google.firebase.auth.FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(activity) { task ->
+                            if (task.isSuccessful) {
+                                Toast.makeText(activity, "Registro OK!", Toast.LENGTH_LONG).show()
+                            } else {
+                                Toast.makeText(activity, "Registro FALHOU! " + task.exception?.message, Toast.LENGTH_LONG).show()
+                            }
+                        }
                 },
                 enabled = name.isNotEmpty() && email.isNotEmpty() &&
                         password.isNotEmpty() && password == confirmPassword

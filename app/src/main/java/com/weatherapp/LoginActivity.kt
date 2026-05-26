@@ -99,13 +99,14 @@ fun LoginPage(modifier: Modifier = Modifier) {
         ) {
             Button(
                 onClick = {
-                    Toast.makeText(activity, "Login OK!", Toast.LENGTH_LONG).show()
-                    // Passo 2 da Parte 3: Dispara o Intent para chamar a MainActivity
-                    activity.startActivity(
-                        Intent(activity, MainActivity::class.java).setFlags(
-                            Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        )
-                    )
+                    com.google.firebase.auth.FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(activity) { task ->
+                            if (task.isSuccessful) {
+                                Toast.makeText(activity, "Login OK!", Toast.LENGTH_LONG).show()
+                            } else {
+                                Toast.makeText(activity, "Login FALHOU! Verifique suas credenciais.", Toast.LENGTH_LONG).show()
+                            }
+                        }
                 },
                 enabled = email.isNotEmpty() && password.isNotEmpty()
             ) {
@@ -124,6 +125,7 @@ fun LoginPage(modifier: Modifier = Modifier) {
         }
 
         Spacer(modifier = Modifier.size(16.dp))
+
         Button(
             onClick = {
                 activity.startActivity(Intent(activity, RegisterActivity::class.java))
