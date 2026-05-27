@@ -6,18 +6,32 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.auth.auth
-import com.google.firebase.ktx.Firebase
-import com.weatherapp.ui.*
+import com.weatherapp.db.fb.FBDatabase
+import com.weatherapp.db.fb.toFBUser
+import com.weatherapp.model.User
+import com.weatherapp.ui.DataField
+import com.weatherapp.ui.PasswordField
 import com.weatherapp.ui.theme.WeatherAppTheme
 
 class RegisterActivity : ComponentActivity() {
@@ -50,14 +64,12 @@ fun RegisterPage(modifier: Modifier = Modifier) {
         Text(text = "Crie sua conta", fontSize = 24.sp)
         Spacer(modifier = Modifier.size(16.dp))
 
-        // Passo 1 (Desafio): Utilizando DataField para Nome e E-mail
         DataField(label = "Nome", value = name, onValueChange = { name = it })
         Spacer(modifier = Modifier.size(8.dp))
 
         DataField(label = "E-mail", value = email, onValueChange = { email = it })
         Spacer(modifier = Modifier.size(8.dp))
 
-        // Passo 1 (Desafio): Utilizando PasswordField para as senhas
         PasswordField(label = "Senha", value = password, onValueChange = { password = it })
         Spacer(modifier = Modifier.size(8.dp))
 
@@ -74,6 +86,8 @@ fun RegisterPage(modifier: Modifier = Modifier) {
                     com.google.firebase.auth.FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(activity) { task ->
                             if (task.isSuccessful) {
+                                FBDatabase().register(User(name, email).toFBUser())
+
                                 Toast.makeText(activity, "Registro OK!", Toast.LENGTH_LONG).show()
                             } else {
                                 Toast.makeText(activity, "Registro FALHOU! " + task.exception?.message, Toast.LENGTH_LONG).show()
