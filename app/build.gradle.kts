@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -22,6 +24,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Carrega as chaves do local.properties para dentro do projeto
+        val keyFile = project.rootProject.file("local.properties")
+        val props = Properties()
+        if (keyFile.exists()) {
+            props.load(keyFile.inputStream())
+        }
+
+        // Define o campo para ser acessado via BuildConfig.WEATHER_API_KEY no código Kotlin
+        buildConfigField("String", "WEATHER_API_KEY", props.getProperty("WEATHER_API_KEY") ?: "\"\"")
     }
 
     buildTypes {
@@ -39,6 +51,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // Ativa o recurso de geração automática da classe BuildConfig
+        buildConfig = true
     }
 }
 
@@ -67,6 +81,11 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:20.0.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("com.google.maps.android:maps-compose:8.3.0")
-    implementation("com.google.android.gms:play-services-location:21.3.0")
-    implementation(libs.firebase.firestore)
+
+    // Dependências do Retrofit adicionadas para a Prática 07
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+
+    // Prática 09: Coil para carregar imagens da rede
+    implementation("io.coil-kt:coil-compose:2.7.0")
 }

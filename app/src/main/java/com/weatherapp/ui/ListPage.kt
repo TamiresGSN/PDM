@@ -1,44 +1,47 @@
 package com.weatherapp.ui
 
 import android.app.Activity
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.weatherapp.MainViewModel
+import com.weatherapp.R
 import com.weatherapp.model.City
+import com.weatherapp.model.Weather
+import com.weatherapp.ui.nav.Route
 
 @Composable
 fun ListPage(
     modifier: Modifier = Modifier,
     viewModel: MainViewModel
 ) {
-    // Busca a lista de cidades do ViewModel
     val cityList = viewModel.cities
-    val activity = LocalContext.current as Activity
+    val activity = LocalContext.current as? Activity
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        // Renderiza cada cidade usando o CityItem abaixo
         items(cityList, key = { it.name }) { city ->
             CityItem(
                 city = city,
+                weather = viewModel.weather(city.name),
                 onClick = {
-                    Toast.makeText(activity, "Cidade: ${city.name}", Toast.LENGTH_SHORT).show()
+                    viewModel.city = city.name
+                    viewModel.page = Route.Home
                 },
                 onClose = {
                     viewModel.remove(city)
@@ -51,10 +54,13 @@ fun ListPage(
 @Composable
 fun CityItem(
     city: City,
+    weather: Weather,
     onClick: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val desc = if (weather == Weather.LOADING) "Carregando clima..." else weather.desc
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -62,15 +68,18 @@ fun CityItem(
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = Icons.Rounded.FavoriteBorder,
-            contentDescription = null
+        // Prática 09 - Parte 1 - Passo 3: carrega a imagem do clima da rede
+        AsyncImage(
+            model = weather.imgUrl,
+            modifier = Modifier.size(75.dp),
+            error = painterResource(id = R.drawable.loading),
+            contentDescription = "Imagem"
         )
         Spacer(modifier = Modifier.size(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(text = city.name, fontSize = 24.sp)
             Text(
-                text = city.weather ?: "Carregando clima...",
+                text = desc,
                 fontSize = 16.sp
             )
         }

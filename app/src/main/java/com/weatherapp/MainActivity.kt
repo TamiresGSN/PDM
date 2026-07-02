@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.weatherapp.api.WeatherService
 import com.weatherapp.db.fb.FBDatabase
 import com.weatherapp.ui.CityDialog
 import com.weatherapp.ui.nav.BottomNavBar
@@ -34,8 +35,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val fbDB = remember { FBDatabase() }
+            // Prática 09 - Parte 2 - Passo 2: passa o context (a atividade) para o serviço
+            val weatherService = remember { WeatherService(this) }
             val viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = MainViewModelFactory(fbDB)
+                factory = MainViewModelFactory(fbDB, weatherService)
             )
 
             val navController = rememberNavController()
@@ -55,13 +58,24 @@ class MainActivity : ComponentActivity() {
 
             var showDialog by remember { mutableStateOf(false) }
 
+            // 🌐 Prática 08 - Parte 3 - Passo 4: Escuta as mudanças de página do ViewModel e navega
+            LaunchedEffect(viewModel.page) {
+                navController.navigate(viewModel.page) {
+                    navController.graph.startDestinationRoute?.let {
+                        popUpTo(it) { saveState = true }
+                    }
+                    restoreState = true
+                    launchSingleTop = true
+                }
+            }
+
             WeatherAppTheme {
                 if (showDialog) {
                     CityDialog(
                         onDismiss = { showDialog = false },
                         onConfirm = { city ->
                             if (city.isNotBlank()) {
-                                viewModel.add(city)
+                                viewModel.addCity(city)
                             }
                             showDialog = false
                         }
@@ -90,7 +104,7 @@ class MainActivity : ComponentActivity() {
                         )
                     },
                     bottomBar = {
-                        BottomNavBar(navController = navController, items = items)
+                        BottomNavBar(viewModel = viewModel, navController = navController, items = items)
                     },
                     floatingActionButton = {
                         if (showButton) {
