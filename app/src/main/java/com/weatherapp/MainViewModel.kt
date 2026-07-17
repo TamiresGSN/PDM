@@ -45,18 +45,26 @@ class MainViewModel(
     private fun loadWeather(name: String) {
         service.getWeather(name) { apiWeather ->
             apiWeather?.let {
-                _weather[name] = it.toWeather()
-                // Prática 09 - Parte 2 - Passo 3: dispara a carga do bitmap
-                loadBitmap(name)
+                val weatherModel = it.toWeather()
+                _weather[name] = weatherModel
+                // Prática 09 - Parte 2 - Passo 3: dispara a carga do bitmap de forma segura
+                loadBitmap(name, weatherModel)
             }
         }
     }
 
     // ── Prática 09 - Parte 2 (Passo 3): carrega o bitmap do clima ────────
-    private fun loadBitmap(name: String) {
-        _weather[name]?.let { weather ->
-            service.getBitmap(weather.imgUrl) { bitmap ->
-                _weather[name] = weather.copy(bitmap = bitmap)
+    private fun loadBitmap(name: String, currentWeather: Weather) {
+        // Resolve o problema da URL virem sem o protocolo "https:" da API
+        val completaUrl = if (currentWeather.imgUrl.startsWith("//")) {
+            "https:" + currentWeather.imgUrl
+        } else {
+            currentWeather.imgUrl
+        }
+
+        service.getBitmap(completaUrl) { bitmap ->
+            if (bitmap != null) {
+                _weather[name] = currentWeather.copy(bitmap = bitmap)
             }
         }
     }

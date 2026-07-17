@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.ViewModelProvider
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -29,18 +30,21 @@ import com.weatherapp.ui.theme.WeatherAppTheme
 
 class MainActivity : ComponentActivity() {
 
+    // 🧬 Instancia os serviços fora do escopo de UI para evitar recriações em loop
+    private val fbDB by lazy { FBDatabase() }
+    private val weatherService by lazy { WeatherService(this) }
+    private lateinit var viewModel: MainViewModel
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Inicializa o ViewModel usando o provedor nativo da Activity
+        val factory = MainViewModelFactory(fbDB, weatherService)
+        viewModel = ViewModelProvider(this, factory)[MainViewModel::class.java]
+
         enableEdgeToEdge()
         setContent {
-            val fbDB = remember { FBDatabase() }
-            // Prática 09 - Parte 2 - Passo 2: passa o context (a atividade) para o serviço
-            val weatherService = remember { WeatherService(this) }
-            val viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-                factory = MainViewModelFactory(fbDB, weatherService)
-            )
-
             val navController = rememberNavController()
             val items = listOf(
                 BottomNavItem.HomeButton,
