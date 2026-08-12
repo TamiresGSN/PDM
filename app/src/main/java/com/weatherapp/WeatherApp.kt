@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 class WeatherApp : Application() {
 
+
     private val FLAGS = Intent.FLAG_ACTIVITY_SINGLE_TOP or
             Intent.FLAG_ACTIVITY_NEW_TASK or
             Intent.FLAG_ACTIVITY_CLEAR_TASK
